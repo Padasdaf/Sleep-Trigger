@@ -1,5 +1,6 @@
 # .github/workflows/ci.yml
 name: CI
+
 on: [push, pull_request]
 
 jobs:
@@ -11,16 +12,28 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.x"
-      - name: Show schemes (debug aid)
-        run: xcodebuild -project SleepTrigger.xcodeproj -list
-      - name: Build iOS (no signing, no tests)
+
+      # Pick the first available iPhone simulator dynamically (no hardcoding).
+      - name: Pick iPhone simulator
+        id: pick-sim
+        shell: bash
+        run: |
+          NAME="$(xcrun simctl list devices available | sed -nE 's/.*(iPhone [^()]+) \(.*/\1/p' | head -n 1)"
+          if [[ -z "$NAME" ]]; then
+            echo "No iPhone simulator found" >&2
+            exit 1
+          fi
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Using simulator: $NAME"
+
+      - name: Build iOS app (no tests, no signing)
         run: |
           set -o pipefail
           xcodebuild \
             -project SleepTrigger.xcodeproj \
             -scheme "SleepTrigger" \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone 15" \
+            -destination "platform=iOS Simulator,name=${{ steps.pick-sim.outputs.name }}" \
             CODE_SIGNING_ALLOWED=NO \
             clean build
 
@@ -32,9 +45,8 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.x"
-      - name: Show schemes (debug aid)
-        run: xcodebuild -project SleepTrigger.xcodeproj -list
-      - name: Build macOS (no signing, no tests)
+
+      - name: Build macOS app (no tests, no signing)
         run: |
           set -o pipefail
           xcodebuild \
@@ -52,7 +64,8 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.x"
-      - name: Build watchOS (no signing, no tests)
+
+      - name: Build watchOS app (no tests, no signing)
         run: |
           set -o pipefail
           xcodebuild \
