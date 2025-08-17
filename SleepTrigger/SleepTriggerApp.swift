@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct SleepTriggerApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    PhoneConnectivityManager.shared.start()
+                    CloudSyncListener.shared.start()
+                    NotificationManager.shared.requestPermissionIfNeeded()
+                }
         }
     }
 }
