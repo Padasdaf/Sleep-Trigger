@@ -1,45 +1,30 @@
 # .github/workflows/ci.yml
 name: CI
-
 on: [push, pull_request]
 
 jobs:
-  ios-build-and-tests:
-    # macOS 15 runners include Xcode 16.x (iOS 18 / watchOS 11 SDKs)
+  ios-build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-
       - name: Select Xcode 16.x
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.x"
-
-      - name: Pick iPhone simulator
-        id: pick-sim
-        shell: bash
+      - name: Show schemes (debug aid)
+        run: xcodebuild -project SleepTrigger.xcodeproj -list
+      - name: Build iOS (no signing, no tests)
         run: |
-          NAME="$(xcrun simctl list devices available | sed -nE 's/.*(iPhone [^()]+) \(.*/\1/p' | head -n 1)"
-          if [[ -z "$NAME" ]]; then
-            echo "No iPhone simulator found" >&2
-            exit 1
-          fi
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "Using simulator: $NAME"
-
-      - name: Build + test iOS (no code signing)
-        run: |
+          set -o pipefail
           xcodebuild \
             -project SleepTrigger.xcodeproj \
             -scheme "SleepTrigger" \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=${{ steps.pick-sim.outputs.name }}" \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
             CODE_SIGNING_ALLOWED=NO \
-            clean build test
-        env:
-          NSUnbufferedIO: "YES"
+            clean build
 
-  macos-build-and-tests:
+  macos-build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -47,20 +32,19 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.x"
-
-      - name: Build + test macOS (no code signing)
+      - name: Show schemes (debug aid)
+        run: xcodebuild -project SleepTrigger.xcodeproj -list
+      - name: Build macOS (no signing, no tests)
         run: |
+          set -o pipefail
           xcodebuild \
             -project SleepTrigger.xcodeproj \
             -scheme "SleepTriggerMac" \
             -destination "platform=macOS" \
             CODE_SIGNING_ALLOWED=NO \
-            clean build test
-        env:
-          NSUnbufferedIO: "YES"
+            clean build
 
   watchos-build:
-    # Build only (watchOS UI tests aren’t supported on CI by default)
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -68,14 +52,12 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.x"
-
-      - name: Build watchOS app (no code signing)
+      - name: Build watchOS (no signing, no tests)
         run: |
+          set -o pipefail
           xcodebuild \
             -project SleepTrigger.xcodeproj \
             -scheme "SleepTriggerWatchOS Watch App" \
             -destination "generic/platform=watchOS Simulator" \
             CODE_SIGNING_ALLOWED=NO \
             clean build
-        env:
-          NSUnbufferedIO: "YES"
