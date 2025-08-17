@@ -168,7 +168,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Core/AsmKernels.swift,
-				Core/DemoTools.swift,
 				Core/Goertzel.metal,
 				Core/MetalSpectral.swift,
 				Core/PerfRunner.swift,
