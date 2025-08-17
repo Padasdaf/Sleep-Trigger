@@ -1,19 +1,47 @@
 # .github/workflows/ci.yml
 name: CI
-
 on: [push, pull_request]
 
 jobs:
+  ios-build:
+    continue-on-error: true
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with: { xcode-version: "16.x" }
+      - run: |
+          set -o pipefail
+          xcodebuild \
+            -project SleepTrigger.xcodeproj \
+            -scheme "SleepTrigger" \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build
+
+  macos-build:
+    continue-on-error: true
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with: { xcode-version: "16.x" }
+      - run: |
+          set -o pipefail
+          xcodebuild \
+            -project SleepTrigger.xcodeproj \
+            -scheme "SleepTriggerMac" \
+            -destination "platform=macOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build
+
   watchos-build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode 16.x
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "16.x"
-      - name: Build watchOS app (no tests)
-        run: |
+      - uses: maxim-lobanov/setup-xcode@v1
+        with: { xcode-version: "16.x" }
+      - run: |
           set -o pipefail
           xcodebuild \
             -project SleepTrigger.xcodeproj \
