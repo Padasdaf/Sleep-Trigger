@@ -1,4 +1,4 @@
-# Sleep-Trigger
+# Sleep Trigger
 
 Lightweight, on-device sleep detection on Apple Watch that triggers your chosen Shortcut on iPhone (and mirrors to Mac/iPad via iCloud KVS). Includes widgets/complications, a macOS menu-bar companion, and a small DSP core (Swift + C/C++/Obj-C/Obj-C++/ASM/Metal) for efficiency.
 
